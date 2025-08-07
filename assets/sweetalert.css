@@ -1,0 +1,76 @@
+/* SweetAlert Customization */
+.swal2-popup.logout-swal {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: 8px !important;
+  padding: 1.5rem !important;
+  width: auto !important;
+  max-width: 400px !important;
+}
+
+.swal2-title.logout-swal-title {
+  color: var(--text-primary) !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  margin: 0 0 0.5rem 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+}
+
+.swal2-html-container.logout-swal-content {
+  color: var(--text-secondary) !important;
+  margin: 0 0 1.5rem 0 !important;
+  padding: 0 !important;
+  font-size: 1rem !important;
+  text-align: center !important;
+}
+
+.swal2-actions.logout-swal-actions {
+  gap: 0.75rem !important;
+  justify-content: center !important; /* Changed from flex-start to center */
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.swal2-confirm.logout-swal-confirm {
+  background: var(--accent-primary) !important;
+  color: white !important;
+  border-radius: 6px !important;
+  padding: 0.5rem 1rem !important;
+  margin: 0 !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+  min-width: 100px !important;
+}
+
+.swal2-confirm.logout-swal-confirm:hover {
+  background: var(--accent-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.swal2-cancel.logout-swal-cancel {
+  background: var(--accent-light) !important;
+  color: var(--text-primary) !important;
+  border-radius: 6px !important;
+  padding: 0.5rem 1rem !important;
+  margin: 0 !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+  min-width: 100px !important;
+}
+
+.swal2-cancel.logout-swal-cancel:hover {
+  background: var(--accent-light-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Icon styling */
+.swal2-icon.swal2-question {
+  color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  margin: 0 auto 1rem auto !important;
+}
