@@ -23,7 +23,6 @@ $firebaseConfig = [
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="assets/sweetalert.css">
     <link rel="stylesheet" href="assets/login.css">
-    <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
@@ -42,18 +41,20 @@ $firebaseConfig = [
 
         <!-- Loading State (shown by default) -->
         <div class="verification-state" id="loading-state">
-            <div class="verification-icon">
-                <i class="fas fa-envelope-open"></i>
+            <div class="verification-icon-container">
+                <div class="verification-icon">
+                    <div class="spinner"></div>
+                    <i class="fas fa-envelope-open icon" id="icons"></i>
+                </div>
             </div>
             <h2 class="status-title">Verifying Your Email</h2>
             <p class="status-message">Please wait while we verify your account...</p>
-            <div class="spinner"></div>
         </div>
 
         <!-- Success State (hidden by default) -->
         <div class="verification-state" id="success-state" style="display: none;">
             <div class="verification-icon success-icon">
-                <i class="fas fa-check-circle"></i>
+                <i class="fas fa-check-circle" ></i>
             </div>
             <h2 class="status-title">Email Verified Successfully!</h2>
             <p class="status-message">Your account has been successfully verified.</p>
@@ -71,11 +72,11 @@ $firebaseConfig = [
 
         <!-- Error State (hidden by default) -->
         <div class="verification-state" id="error-state" style="display: none;">
-            <div class="verification-icon error-icon">
-                <i class="fas fa-exclamation-triangle"></i>
+            <div class="verification-icon-error error-icon">
+                <i class="fas fa-exclamation-triangle" class="error_icon"></i>
             </div>
             <h2 class="status-title">Verification Failed</h2>
-            <p class="status-message">This verification link is invalid or has expired.</p>
+            <p class="status-message" id="error-message">This verification link is invalid or has expired.</p>
             
             <div class="info-box">
                 <p><i class="fas fa-info-circle"></i> Need help? Try logging in - if your email is already verified, you should be able to access your account.</p>
@@ -95,7 +96,6 @@ $firebaseConfig = [
     </div>
 
     <script src="scripts/scripts.js"></script>
-
     <script>
         // Initialize Firebase
         firebase.initializeApp({
@@ -109,21 +109,51 @@ $firebaseConfig = [
         const db = firebase.firestore();
 
         // Function to show different states
-        function showState(state) {
+        function showState(state, message = '') {
             document.querySelectorAll('.verification-state').forEach(el => {
                 el.style.display = 'none';
             });
-            document.getElementById(state + '-state').style.display = 'block';
+            const stateElement = document.getElementById(state + '-state');
+            stateElement.style.display = 'block';
+            
+            if (message && state === 'error') {
+                document.getElementById('error-message').textContent = message;
+            }
         }
 
         // Function to resend verification
-        function resendVerification() {
-            // This would be implemented with your actual resend logic
-            showCustomAlert({
-                icon: 'success',
-                title: 'Verification Email Sent',
-                text: 'A new verification email has been sent to your email address.'
-            });
+        async function resendVerification() {
+            try {
+                // Show loading state while resending
+                showState('loading');
+                
+                // Get current user (if logged in)
+                const user = auth.currentUser;
+                if (user) {
+                    await user.sendEmailVerification({
+                        url: window.location.origin + '/verify_success.php'
+                    });
+                    showCustomAlert({
+                        icon: 'success',
+                        title: 'Verification Sent',
+                        text: 'A new verification email has been sent to your email address.'
+                    });
+                } else {
+                    showCustomAlert({
+                        icon: 'info',
+                        title: 'Please Login',
+                        text: 'You need to be logged in to resend verification.'
+                    });
+                }
+            } catch (error) {
+                showCustomAlert({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to resend verification email: ' + error.message
+                });
+            } finally {
+                showState('error');
+            }
         }
 
         // Universal SweetAlert Function with custom design
@@ -161,15 +191,18 @@ $firebaseConfig = [
                 const mode = urlParams.get('mode');
                 
                 if (!oobCode || mode !== 'verifyEmail') {
-                    throw new Error('Invalid verification link');
+                    throw { code: 'auth/invalid-action-code', message: 'Invalid verification link' };
                 }
+                
+                // Show loading state with a slight delay for better UX
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
                 // 1. First, check the action code to get the email
                 const actionCodeInfo = await auth.checkActionCode(oobCode);
                 const email = actionCodeInfo.data.email;
                 
                 if (!email) {
-                    throw new Error('Could not determine email from verification link');
+                    throw { code: 'auth/invalid-action-code', message: 'Could not determine email from verification link' };
                 }
                 
                 // 2. Apply the action code to verify the email
@@ -196,12 +229,22 @@ $firebaseConfig = [
                     await currentUser.reload();
                 }
                 
-                // 5. Show success state
-                showState('success');
+                // 5. Show success state with a slight delay
+                setTimeout(() => {
+                    showState('success');
+                }, 1000);
                 
             } catch (error) {
                 console.error('Verification error:', error);
-                showState('error');
+                
+                const errorMessages = {
+                    'auth/expired-action-code': 'This verification link has expired.',
+                    'auth/invalid-action-code': 'This verification link is invalid or has already been used.',
+                    'auth/user-disabled': 'Your account has been disabled.'
+                };
+                
+                const message = errorMessages[error.code] || error.message || 'Verification failed. Please try again.';
+                showState('error', message);
             }
         });
     </script>
