@@ -1,6 +1,6 @@
 <?php  
 // Load API key from .env located two levels up
-$env = parse_ini_file(__DIR__ . '/../../.env');
+$env = parse_ini_file(__DIR__ . '/../../.env.');
 $api_key = $env['GEMINI_API_KEY'];
 
 $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$api_key";
