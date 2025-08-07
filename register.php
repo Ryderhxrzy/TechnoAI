@@ -40,6 +40,8 @@ foreach ($requiredKeys as $key) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="assets/sweetalert.css">
+    <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
     <style>
         .loading {
             position: relative;
@@ -92,8 +94,7 @@ foreach ($requiredKeys as $key) {
         <div class="login-header">
             <div class="logo">
                 <div class="logo-icon">
-                    <i class="fas fa-cog gear"></i>
-                    <i class="fas fa-robot robot"></i>
+                    <img src="assets/images/logo.png" class="logo-icon" alt="">
                 </div>
                 <span class="logo-text">Techno.ai</span>
             </div>
@@ -382,6 +383,7 @@ foreach ($requiredKeys as $key) {
                     email_verified_at: null,
                     auth_provider: 'email',
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    profile_pic: '', // Optional, can be updated later
                     role: 'user'
                 });
 

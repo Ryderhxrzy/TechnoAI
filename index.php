@@ -35,6 +35,8 @@ foreach ($requiredKeys as $key) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - AI ChatTest</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="assets/login.css">
     <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -50,8 +52,7 @@ foreach ($requiredKeys as $key) {
         <div class="login-header">
             <div class="logo">
                 <div class="logo-icon">
-                    <i class="fas fa-cog gear"></i>
-                    <i class="fas fa-robot robot"></i>
+                    <img src="assets/images/logo.png" class="logo-icon" alt="">
                 </div>
                 <span class="logo-text">Techno.ai</span>
             </div>
