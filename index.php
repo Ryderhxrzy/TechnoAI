@@ -52,7 +52,8 @@ foreach ($requiredKeys as $key) {
             <p class="login-subtitle">Sign in to your account to continue</p>
         </div>
 
-        <form class="login-form" id="loginForm">
+        <!-- Changed to POST method and removed action attribute since we're handling with JavaScript -->
+        <form class="login-form" id="loginForm" method="post">
             <button type="button" class="btn btn-google" id="google-login-btn">
                 <div class="google-icon"></div>
                 Continue with Google
@@ -142,116 +143,250 @@ foreach ($requiredKeys as $key) {
             }
         }
 
-        document.getElementById('google-login-btn').addEventListener('click', async () => {
-            const btn = document.getElementById('google-login-btn');
-            btn.classList.add('loading');
-            btn.innerHTML = '<div class="google-icon"></div>Signing in...';
+        // Email/Password Login Handler
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('login-btn');
 
-            try {
-                const provider = new GoogleAuthProvider();
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
+    // Validate inputs
+    if (!email || !password) {
+        await showCustomAlert({
+            title: 'Validation Error',
+            text: 'Please fill in all required fields',
+            icon: 'warning'
+        });
+        return;
+    }
 
-                const userDocRef = doc(db, "users", user.uid);
-                const userDoc = await getDoc(userDocRef);
+    btn.classList.add('loading');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
 
-                if (!userDoc.exists()) {
-                    await auth.signOut();
-                    await deleteFirebaseUser(user);
+    try {
+        // First, authenticate with Firebase
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-                    await showCustomAlert({
-                        title: 'Account Not Found',
-                        html: 'User account not found in database. <a style="color: #0085d1;" href="register.php">Register</a> first.',
-                        icon: 'error'
-                    });
+        // Get user data from Firestore
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+            throw new Error("User account not found in database. Please register first.");
+        }
 
-                    btn.classList.remove('loading');
-                    btn.innerHTML = '<div class="google-icon"></div>Continue with Google';
-                    return;
-                }
+        const userData = userDoc.data();
 
-                const userData = userDoc.data();
+        if (!userData.is_verified) {
+            throw new Error("Account not verified. Please check your email for verification instructions.");
+        }
 
-                if (!userData.is_verified) {
-                    await showCustomAlert({
-                        title: 'Account Not Verified',
-                        text: 'Your account is not yet verified. Please check your email for verification instructions.',
-                        icon: 'warning'
-                    });
-                    await auth.signOut();
-                    btn.classList.remove('loading');
-                    btn.innerHTML = '<div class="google-icon"></div>Continue with Google';
-                    return;
-                }
+        // Prepare data for backend
+        const loginData = {
+            action: 'firebase-email-login',
+            uid: user.uid,
+            email: user.email,
+            name: userData.full_name || user.displayName || user.email,
+            picture: userData.picture || user.photoURL || ''
+        };
 
-                if (userData.auth_provider && userData.auth_provider !== 'google') {
-                    await showCustomAlert({
-                        title: 'Wrong Login Method',
-                        text: `You registered using ${userData.auth_provider}. Please login with the same provider.`,
-                        icon: 'error'
-                    });
-                    await auth.signOut();
-                    btn.classList.remove('loading');
-                    btn.innerHTML = '<div class="google-icon"></div>Continue with Google';
-                    return;
-                }
+        console.log('Sending login data:', loginData); // Debug log
 
-                const formData = new FormData();
-                formData.append('action', 'firebase-google-login');
-                formData.append('uid', user.uid);
-                formData.append('email', user.email);
-                formData.append('name', user.displayName || 'Google User');
-                formData.append('picture', user.photoURL || '');
-
-                const response = await fetch('google/login-handler.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    await showCustomAlert({
-                        title: 'Login Successful',
-                        text: 'You are being redirected to your dashboard...',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    window.location.href = 'users/home.php';
-                } else {
-                    throw new Error(data.message || 'Account does not exist');
-                }
-
-            } catch (error) {
-                console.error("Login error:", error);
-                await auth.signOut();
-
-                let errorMessage = error.message;
-                let alertTitle = 'Login Error';
-                let alertIcon = 'error';
-
-                if (error.code === 'auth/popup-closed-by-user') {
-                    errorMessage = "Login cancelled by user";
-                    alertTitle = 'Login Cancelled';
-                    alertIcon = 'info';
-                } else if (error.code === 'auth/popup-blocked') {
-                    errorMessage = "Popup blocked by browser. Please allow popups for this site.";
-                    alertTitle = 'Popup Blocked';
-                }
-
-                await showCustomAlert({
-                    title: alertTitle,
-                    text: errorMessage,
-                    icon: alertIcon
-                });
-
-                btn.classList.remove('loading');
-                btn.innerHTML = '<div class="google-icon"></div>Continue with Google';
-            }
+        // Send to backend using fetch with proper error handling
+        const response = await fetch('google/login_handler.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(loginData)
         });
 
-        // ✅ Renamed to avoid conflict
+        // Log response details for debugging
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+        // Get response text first to check what we received
+        const responseText = await response.text();
+        console.log('Response text:', responseText); // Debug log
+
+        // Try to parse as JSON
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('JSON parse error:', jsonError);
+            console.error('Response was:', responseText);
+            throw new Error('Server returned invalid response. Please try again.');
+        }
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Login failed');
+        }
+
+        // Success
+        await showCustomAlert({
+            title: 'Login Successful',
+            text: 'You are being redirected to your dashboard...',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        
+        window.location.href = 'users/home.php';
+
+    } catch (error) {
+        console.error("Login error:", error);
+        
+        // Sign out from Firebase on error
+        try {
+            await auth.signOut();
+        } catch (signOutError) {
+            console.error('Sign out error:', signOutError);
+        }
+
+        let errorMessage = error.message;
+        let alertTitle = 'Login Error';
+        let alertIcon = 'error';
+
+        // Handle specific Firebase auth errors
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = "Account does not exist. Please register first.";
+        } else if (error.code === 'auth/wrong-password') {
+            errorMessage = "Incorrect email or password. Please try again.";
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = "Please enter a valid email address.";
+        } else if (error.code === 'auth/user-disabled') {
+            errorMessage = "This account has been disabled. Please contact support.";
+        } else if (error.code === 'auth/too-many-requests') {
+            errorMessage = "Too many failed attempts. Please try again later.";
+        }
+
+        await showCustomAlert({
+            title: alertTitle,
+            text: errorMessage,
+            icon: alertIcon
+        });
+
+    } finally {
+        // Reset button state
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign in';
+    }
+});
+
+// Google Login Handler (also updated for consistency)
+document.getElementById('google-login-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('google-login-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<div class="google-icon"></div>Signing in...';
+
+    try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists()) {
+            await auth.signOut();
+            await deleteFirebaseUser(user);
+
+            await showCustomAlert({
+                title: 'Account Not Found',
+                html: 'User account not found in database. <a style="color: #0085d1;" href="register.php">Register</a> first.',
+                icon: 'error'
+            });
+
+            return;
+        }
+
+        const userData = userDoc.data();
+
+        if (!userData.is_verified) {
+            await showCustomAlert({
+                title: 'Account Not Verified',
+                text: 'Your account is not yet verified. Please check your email for verification instructions.',
+                icon: 'warning'
+            });
+            await auth.signOut();
+            return;
+        }
+
+        if (userData.auth_provider && userData.auth_provider !== 'google') {
+            await showCustomAlert({
+                title: 'Wrong Login Method',
+                text: `You registered using ${userData.auth_provider}. Please login with the same provider.`,
+                icon: 'error'
+            });
+            await auth.signOut();
+            return;
+        }
+
+        // Prepare data for backend
+        const loginData = {
+            action: 'firebase-google-login',
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName || userData.full_name || user.email,
+            picture: user.photoURL || userData.picture || ''
+        };
+
+        const response = await fetch('google/login_handler.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(loginData)
+        });
+
+        const responseText = await response.text();
+        const data = JSON.parse(responseText);
+
+        if (response.ok && data.success) {
+            await showCustomAlert({
+                title: 'Login Successful',
+                text: 'You are being redirected to your dashboard...',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            window.location.href = 'users/home.php';
+        } else {
+            throw new Error(data.message || 'Login failed');
+        }
+
+    } catch (error) {
+        console.error("Google login error:", error);
+        await auth.signOut();
+
+        let errorMessage = error.message;
+        let alertTitle = 'Login Error';
+        let alertIcon = 'error';
+
+        if (error.code === 'auth/popup-closed-by-user') {
+            errorMessage = "Login cancelled by user";
+            alertTitle = 'Login Cancelled';
+            alertIcon = 'info';
+        } else if (error.code === 'auth/popup-blocked') {
+            errorMessage = "Popup blocked by browser. Please allow popups for this site.";
+            alertTitle = 'Popup Blocked';
+        }
+
+        await showCustomAlert({
+            title: alertTitle,
+            text: errorMessage,
+            icon: alertIcon
+        });
+    } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<div class="google-icon"></div>Continue with Google';
+    }
+});
+
         async function deleteFirebaseUser(user) {
             try {
                 await firebaseDeleteUser(user);
@@ -259,78 +394,6 @@ foreach ($requiredKeys as $key) {
                 console.error("Error deleting user:", error);
             }
         }
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('login-btn');
-
-            btn.classList.add('loading');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                await checkUserInFirestore(user.uid, 'email');
-
-                const formData = new FormData();
-                formData.append('action', 'firebase-email-login');
-                formData.append('uid', user.uid);
-                formData.append('email', user.email);
-
-                const response = await fetch('google/login-handler.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    await showCustomAlert({
-                        title: 'Login Successful',
-                        text: 'You are being redirected to your dashboard...',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    window.location.href = 'users/home.php';
-                } else {
-                    throw new Error(data.message || 'Account does not exist');
-                }
-
-            } catch (error) {
-                console.error("Login error:", error);
-                await auth.signOut();
-
-                let errorMessage = error.message;
-                let alertTitle = 'Login Error';
-                let alertIcon = 'error';
-
-                if (error.code === 'auth/user-not-found') {
-                    errorMessage = "Account does not exist. Please register first.";
-                } else if (error.code === 'auth/wrong-password') {
-                    errorMessage = "Incorrect password. Please try again.";
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMessage = "Too many failed attempts. Account temporarily locked.";
-                    alertTitle = 'Account Locked';
-                } else if (error.message.includes('Account not verified') || error.message.includes('Registered with')) {
-                    btn.classList.remove('loading');
-                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign in';
-                    return;
-                }
-
-                await showCustomAlert({
-                    title: alertTitle,
-                    text: errorMessage,
-                    icon: alertIcon
-                });
-
-                btn.classList.remove('loading');
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign in';
-            }
-        });
 
         async function showCustomAlert(options) {
             const defaultOptions = {

@@ -9,12 +9,12 @@ if (!isset($_SESSION['user'])) {
 
 $user = $_SESSION['user'];
 
-// Get user's full name and first name for display
-$fullName = $user['name'];
-$firstName = explode(' ', $user['name'])[0];
+// Get user's full name and first name for display with fallbacks
+$fullName = $user['name'] ?? $user['email']; // Fallback to email if name not set
+$firstName = explode(' ', $fullName)[0];
 
 // Get user initials for fallback avatar
-$nameParts = explode(' ', $user['name']);
+$nameParts = explode(' ', $fullName);
 $initials = '';
 if (count($nameParts) >= 2) {
     $initials = strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1));

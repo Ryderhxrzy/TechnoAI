@@ -55,7 +55,7 @@ $firebaseConfig = [
         <!-- Success State (hidden by default) -->
         <div class="verification-state" id="success-state" style="display: none;">
             <div class="verification-icon success-icon">
-                <i class="fas fa-check-circle" ></i>
+                <i class="fas fa-check-circle" class="error_icon"></i>
             </div>
             <h2 class="status-title">Email Verified Successfully!</h2>
             <p class="status-message">Your account has been successfully verified.</p>
