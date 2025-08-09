@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Check if user is logged in
 if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit;
@@ -9,11 +8,9 @@ if (!isset($_SESSION['user'])) {
 
 $user = $_SESSION['user'];
 
-// Get user's full name and first name for display with fallbacks
-$fullName = $user['name'] ?? $user['email']; // Fallback to email if name not set
+$fullName = $user['name'] ?? $user['email'];
 $firstName = explode(' ', $fullName)[0];
 
-// Get user initials for fallback avatar
 $nameParts = explode(' ', $fullName);
 $initials = '';
 if (count($nameParts) >= 2) {
