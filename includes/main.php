@@ -38,12 +38,10 @@ if (count($nameParts) >= 2) {
 </head>
 <body>
   <div id="app-container">
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
       <button class="sidebar-minimizer">
         <i class="fas fa-chevron-right"></i>
       </button>
-      <!-- Logo Section -->
       <div class="sidebar-logo">
         <div class="logo-icon">
           <img src="../assets/images/logo.png" class="logo-icon" alt="">
@@ -64,7 +62,6 @@ if (count($nameParts) >= 2) {
         </div>
       </div>
       
-      <!-- Updated User Profile Section -->
       <div class="user-profile">
         <div class="profile-avatar">
           <?php if (!empty($user['picture'])): ?>
