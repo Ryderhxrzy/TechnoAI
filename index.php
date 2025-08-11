@@ -90,7 +90,7 @@ foreach ($requiredKeys as $key) {
             </button>
 
             <div class="register-link">
-                Don't have an account? <a href="register.php">Create account</a>
+                <span class="texts">Don't have an account?</span> <a href="register.php">Create account</a>
             </div>
         </form>
     </div>
