@@ -608,10 +608,15 @@ function setupLogout() {
   const logoutDropdown = document.createElement('div');
   logoutDropdown.className = 'logout-dropdown';
   logoutDropdown.innerHTML = `
+    <div class="items">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
     <div class="logout-item">
       <i class="fas fa-sign-out-alt"></i>
       <span>Logout</span>
     </div>
+    
   `;
   
   // Toggle dropdown when clicking profile

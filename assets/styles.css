@@ -435,13 +435,38 @@ body {
   cursor: pointer;
 }
 
+.items {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sidebar.collapsed .items {
+  padding: 8px 12px;
+}
+
 .sidebar.collapsed .logout-item {
   padding: 8px 12px;
-  font-size: 0.85rem;
 }
 
 .logout-item:hover {
   background: var(--accent-light);
+}
+
+.items:hover {
+  background: var(--accent-light);
+}
+
+.items i {
+  color: var(--text-secondary);
+  width: 18px;
+  text-align: center;
+  font-size: 0.9rem;
 }
 
 .logout-item i {
