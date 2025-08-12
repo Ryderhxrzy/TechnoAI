@@ -23,6 +23,7 @@
   
   --accent-primary: #0085d1;
   --accent-hover: #0095f0;
+  --sub-accent: #0084d18c;
   
   --accent-light: #e0e6ed;
   --accent-light-hover: #d0d8e3;  
@@ -214,20 +215,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.logo-icon .gear {
-    font-size: 36px;
-    color: var(--accent-primary);
-    position: absolute;
-}
-
-.logo-icon .robot {
-    font-size: 18px;
-    color: white;
-    z-index: 1;
-
-    filter: drop-shadow(0 0 0.5px #1a1a1a);
 }
 
 .logo-text {
@@ -818,12 +805,18 @@ body {
 }
 
 .user-message {
+  max-width: 85%;
+  width: fit-content;
   color: var(--text-primary);
   align-self: flex-end;
   background: var(--bg-input);
   border-bottom-right-radius: 4px;
-  border: 1px solid var(--accent-light);
+  border: 1px solid var(--border-primary);
   padding: 16px 20px;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .bot-message,
@@ -852,8 +845,8 @@ body {
   left: -40px;
   top: 50%;
   transform: translateY(-50%);
-  width: 37px; /* Outer size including border space */
-  height: 37px;
+  width: 39px; /* Outer size including border space */
+  height: 39px;
   padding: 3px; /* Space between image and border */
   background-image: url('../assets/images/logo.png');
   background-size: contain;
@@ -861,7 +854,7 @@ body {
   background-position: center;
   background-origin: content-box; /* Start background inside padding */
   border-radius: 50%;
-  border: 1px solid var(--accent-border);
+  border: 2px solid var(--border-primary);
   box-sizing: border-box;
 }
 
@@ -988,43 +981,78 @@ body {
 
 /* Input Container */
 .input-container {
-    padding: 16px 20px;
-    background: var(--bg-secondary);
+  max-width: 100%;
+  width: 100%;
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  box-sizing: border-box;
 }
 
 .input-wrapper {
-    position: relative;
-    background: var(--bg-input);
-    border: 1px solid var(--accent-light);
-    border-radius: 15px;
-    padding: 8px 52px 8px 16px;
-    transition: all 0.2s ease;
+  max-width: 100%;
+  width: 100%;
+  position: relative;
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: 24px;
+  padding: 16px 16px 56px 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
+.input-wrapper:focus-within {
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 12px rgba(16, 163, 127, 0.15);
+}
 
 #user-input {
-    width: 100%;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--text-primary);
-    resize: none;
-    min-height: 64px;
-    max-height: 300px;
-    overflow-y: auto;
-    line-height: 1.5;
+  width: calc(100% - 16px); /* Account for padding */
+  max-width: 100%;
+  min-height: 24px;
+  max-height: 144px;
+  overflow-y: auto;
+  resize: none;
+  line-height: 1.5;
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--text-primary);
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
-#user-input::placeholder {
-    color: var(--text-muted);
+
+/* Scrollbar styles */
+#user-input::-webkit-scrollbar {
+    width: 6px;
+}
+
+#user-input::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#user-input::-webkit-scrollbar-thumb {
+    background: var(--border-primary);
+    border-radius: 3px;
+}
+
+.button-group {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 8px;
 }
 
 #send-btn {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
     background: var(--accent-primary);
     color: white;
     border: none;
@@ -1046,7 +1074,51 @@ body {
 #send-btn:disabled {
     background: var(--text-muted);
     cursor: not-allowed;
-    transform: translateY(-50%);
+}
+
+#mic-btn {
+    background: var(--sub-accent);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+#mic-btn:hover {
+    background: var(--accent-hover);
+}
+
+#mic-btn:disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .input-wrapper {
+        padding: 14px 14px 50px 14px;
+    }
+    
+
+    .button-group {
+        right: 6px;
+        left: 6px;
+        bottom: 6px;
+        height: 36px;
+        padding: 0 6px;
+    }
+    
+    #send-btn {
+        width: 32px;
+        height: 32px;
+    }
 }
 
 /* Welcome Message */

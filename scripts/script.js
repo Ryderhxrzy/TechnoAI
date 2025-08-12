@@ -286,32 +286,42 @@ async function typeMessage(element, text, speed = 30) {
   });
 }
 
+// Update the autoResize function in your script.js
 function autoResize() {
-            // Reset height to auto to get the correct scrollHeight
-            textarea.style.height = 'auto';
-            
-            // Calculate the new height (minimum of 2 rows)
-            const minHeight = parseInt(getComputedStyle(textarea).lineHeight) * 2;
-            const newHeight = Math.max(Math.min(textarea.scrollHeight, 150), minHeight);
-            
-            // Set the new height
-            textarea.style.height = newHeight + 'px';
-            
-            // Show scrollbar if content exceeds max height
-            if (textarea.scrollHeight > 150) {
-                textarea.style.overflowY = 'auto';
-            } else {
-                textarea.style.overflowY = 'hidden';
-            }
-        }
+  const textarea = document.getElementById('user-input');
+  const wrapper = document.getElementById('chat-input-wrapper');
+  
+  // Reset height to calculate scroll height properly
+  textarea.style.height = 'auto';
+  wrapper.style.height = 'auto';
+  
+  // Calculate heights
+  const minHeight = 130; // Minimum height of wrapper
+  const maxHeight = 300; // Maximum height of wrapper
+  const textareaScrollHeight = textarea.scrollHeight;
+  
+  // Calculate new height for textarea (limited to show scrollbar when needed)
+  const textareaHeight = Math.min(Math.max(textareaScrollHeight, 24), 144);
+  
+  // Calculate new height for wrapper
+  const wrapperHeight = Math.min(Math.max(textareaScrollHeight + 32, minHeight), maxHeight);
+  
+  // Apply heights
+  textarea.style.height = `${textareaHeight}px`;
+  wrapper.style.height = `${wrapperHeight}px`;
+  
+  // Show scrollbar if content exceeds max height
+  textarea.style.overflowY = textareaScrollHeight > 144 ? 'auto' : 'hidden';
+}
 
-        // Event listeners for auto-resize
-        textarea.addEventListener('input', autoResize);
-        textarea.addEventListener('paste', () => {
-            setTimeout(autoResize, 10);
-        });
+// Event listeners for auto-resize
+document.getElementById('user-input').addEventListener('input', autoResize);
+document.getElementById('user-input').addEventListener('paste', () => {
+  setTimeout(autoResize, 10);
+});
 
-        autoResize();
+// Initialize on load
+window.addEventListener('load', autoResize);
 
 async function sendMessage() {
   const userInput = textarea.value.trim();
@@ -333,6 +343,7 @@ async function sendMessage() {
   textarea.value = '';
   textarea.style.height = 'auto';
   sendBtn.disabled = true;
+  autoResize();
   showTypingIndicator();
   chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -635,7 +646,7 @@ function setupLogout() {
   
   logoutDropdown.querySelector('.profile-link').addEventListener('click', function(e) {
     e.stopPropagation();
-    window.location.href = 'profile.php';
+    window.location.href = '../profile.php';
   });
 
   // Handle logout click
