@@ -159,7 +159,7 @@ body {
 }
 
 .register-link {
-  color: var(--accent-primary);
+  color: var(--text-secondary);
 }
 
 .loading {
@@ -820,10 +820,9 @@ body {
 .user-message {
   color: var(--text-primary);
   align-self: flex-end;
+  background: var(--bg-input);
   border-bottom-right-radius: 4px;
-  background-color: var(--bg-user-message);
-  background: none;
-  border: 1px solid var(--border-primary);
+  border: 1px solid var(--accent-light);
   padding: 16px 20px;
 }
 
@@ -848,20 +847,22 @@ body {
 /* Profile avatar - simple style */
 .bot-message::before,
 .typing-indicator::before {
-  content: '🤖';
+  content: '';
   position: absolute;
   left: -40px;
-  top: 12px; /* Slight offset to align with first line of text */
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: flex-start; /* Align to top, not center */
-  justify-content: center;
-  font-size: 1.2rem;
-  background: none;
-  border: none;
-  flex-shrink: 0; /* Prevent avatar from shrinking */
-  line-height: 1; /* Remove extra line height */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 37px; /* Outer size including border space */
+  height: 37px;
+  padding: 3px; /* Space between image and border */
+  background-image: url('../assets/images/logo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-origin: content-box; /* Start background inside padding */
+  border-radius: 50%;
+  border: 1px solid var(--accent-border);
+  box-sizing: border-box;
 }
 
 /* Typing Indicator - clean style */
@@ -873,7 +874,9 @@ body {
 
 .typing-indicator.show {
   display: flex;
-  align-items: center;
+  align-items: center; /* Vertical center text/dots */
+  min-height: 37px; /* Match avatar height */
+  padding: 0 16px; /* Remove vertical padding so centering works */
 }
 
 .typing-dots {
@@ -992,7 +995,7 @@ body {
 .input-wrapper {
     position: relative;
     background: var(--bg-input);
-    border: 2px solid var(--border-primary);
+    border: 1px solid var(--accent-light);
     border-radius: 15px;
     padding: 8px 52px 8px 16px;
     transition: all 0.2s ease;

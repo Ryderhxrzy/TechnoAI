@@ -608,7 +608,7 @@ function setupLogout() {
   const logoutDropdown = document.createElement('div');
   logoutDropdown.className = 'logout-dropdown';
   logoutDropdown.innerHTML = `
-    <div class="items">
+    <div class="items profile-link">
       <i class="fas fa-user"></i>
       <span>Profile</span>
     </div>
@@ -633,6 +633,11 @@ function setupLogout() {
   // Add dropdown to profile
   userProfile.appendChild(logoutDropdown);
   
+  logoutDropdown.querySelector('.profile-link').addEventListener('click', function(e) {
+    e.stopPropagation();
+    window.location.href = 'profile.php';
+  });
+
   // Handle logout click
   logoutDropdown.querySelector('.logout-item').addEventListener('click', function(e) {
     e.stopPropagation();
